@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException, Query
 from database import engine, Session, Base, City, User, Picnic, PicnicRegistration
 from external_requests import CheckCityExisting, GetWeatherRequest
 from models import RegisterUserRequest, UserModel
+from sqlalchemy import desc
 
 app = FastAPI()
 
@@ -10,10 +11,10 @@ app = FastAPI()
 @app.get('/create-city/', summary='Create City', description='Создание города по его названию')
 def create_city(city: str = Query(description="Название города", default=None)):
     if city is None:
-        raise HTTPException(status_code=400, detail='Параметр city должен быть указан')
+        raise HTTPException(status_code=400, detail='Параметр city должен быть указанd')
     check = CheckCityExisting()
     if not check.check_existing(city):
-        raise HTTPException(status_code=400, detail='Параметр city должен быть существующим городом')
+        raise HTTPException(status_code=400, detail='Параметр city должен быть существующим городомd')
 
     city_object = Session().query(City).filter(City.name == city.capitalize()).first()
     if city_object is None:
@@ -25,22 +26,34 @@ def create_city(city: str = Query(description="Название города", d
     return {'id': city_object.id, 'name': city_object.name, 'weather': city_object.weather}
 
 
-@app.post('/get-cities/', summary='Get Cities')
+@app.get('/get-cities/', summary='Get Cities')
 def cities_list(q: str = Query(description="Название города", default=None)):
     """
     Получение списка городов
     """
+    
     cities = Session().query(City).all()
 
-    return [{'id': city.id, 'name': city.name, 'weather': city.weather} for city in cities]
-
+    if q is not None:
+        #Проверка является ли q подстрокой названия города, если до то возвращает этот город
+        return [{'id': city.id, 'name': city.name, 'weather': city.weather} for city in cities if q in city.name]
+    
+    if q is None:
+        return [{'id': city.id, 'name': city.name, 'weather': city.weather} for city in cities]
 
 @app.post('/users-list/', summary='')
-def users_list():
+def users_list(sort: str = Query(description="Сортировка (Поубыванию - asc, По возрастанию - desc)", default=None)):
     """
     Список пользователей
     """
-    users = Session().query(User).all()
+    
+    if sort == 'asc':
+        users = Session().query(User).order_by(User.age)
+    elif sort == 'desc':
+        users = Session().query(User).order_by(desc(User.age))
+    elif sort == None:
+        users = Session().query(User).all()
+
     return [{
         'id': user.id,
         'name': user.name,
