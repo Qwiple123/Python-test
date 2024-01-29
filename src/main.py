@@ -89,7 +89,7 @@ def all_picnics(datetime: dt.datetime = Query(default=None, description='Вре�
 
     return [{
         'id': pic.id,
-        'city': Session().query(City).filter(City.id == pic.id).first().name,
+        'city': Session().query(City).filter(City.id == pic.city_id).first().name,
         'time': pic.time,
         'users': [
             {
@@ -109,6 +109,7 @@ def picnic_add(city_id: int = None, datetime: dt.datetime = None):
     s.add(p)
     s.commit()
     #Ошибка была в указании id города для city(указывался id обьекта пикника а не id города в котором будет пикник)
+    #Такая же ошибка была в all_picnics
     return {
         'id': p.id,
         'city': Session().query(City).filter(City.id == p.city_id).first().name,
@@ -117,11 +118,14 @@ def picnic_add(city_id: int = None, datetime: dt.datetime = None):
 
 
 @app.get('/picnic-register/', summary='Picnic Registration', tags=['picnic'])
-def register_to_picnic(*_, **__,):
+def register_to_picnic(picnic_id: int = None, user_id: int = None):
     """
     Регистрация пользователя на пикник
-    (Этот эндпойнт необходимо реализовать в процессе выполнения тестового задания)
     """
-    # TODO: Сделать логику
-    return ...
+    
+    picnic_object = PicnicRegistration(user_id = user_id, picnic_id = picnic_id)
+    s = Session()
+    s.add(picnic_object)
+    s.commit()
+    return {'id': picnic_object.id, 'city': Session().query(City).filter(City.id == picnic_object.picnic.city_id).first().name, 'time': picnic_object.picnic.time, 'user_id': picnic_object.user_id, 'name': picnic_object.user.name} 
 
