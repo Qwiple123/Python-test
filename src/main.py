@@ -127,5 +127,11 @@ def register_to_picnic(picnic_id: int = None, user_id: int = None):
     s = Session()
     s.add(picnic_object)
     s.commit()
-    return {'id': picnic_object.id, 'city': Session().query(City).filter(City.id == picnic_object.picnic.city_id).first().name, 'time': picnic_object.picnic.time, 'user_id': picnic_object.user_id, 'name': picnic_object.user.name} 
+    return {
+            'id': picnic_object.id, 
+            'city': Session().query(City).filter(City.id == picnic_object.picnic.city_id).first().name,
+            'time': picnic_object.picnic.time,
+            'user_id': picnic_object.user_id,
+            'name': picnic_object.user.name
+            }
 
