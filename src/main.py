@@ -35,7 +35,7 @@ def cities_list(q: str = Query(description="Название города", defa
     cities = Session().query(City).all()
 
     if q is not None:
-        #Проверка является ли q подстрокой названия города, если до то возвращает этот город
+        #Проверка является ли q подстрокой названия города, если да то возвращает этот город
         return [{'id': city.id, 'name': city.name, 'weather': city.weather} for city in cities if q in city.name]
     
     if q is None:
